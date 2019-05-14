@@ -2,6 +2,12 @@ const express = require('express');
 const rq = require('request-promise');
 const app = express();
 const port = 3000;
+const Slack = require('slack-node');
+ 
+const webhookUri = "https://hooks.slack.com/services/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";
+ 
+const slack = new Slack();
+slack.setWebhook(webhookUri);
 
 app.get('/', function(req,res){
 
@@ -29,7 +35,6 @@ app.get('/', function(req,res){
 
             const retData = body.replace('window.__jindo2_callback._fortune_my_0(','').replace(');','').replace(/\s([A-z]+)\s?:/g,'"$1":').replace('\n','');
             const jsonData =  JSON.parse(retData);
-            const result = JSON.stringify(retData);
 
             res.send(jsonData.result.day.content);
             console.log('--------------------------------------');
@@ -38,10 +43,15 @@ app.get('/', function(req,res){
             console.log(jsonData.result.day.content[0].desc);
             console.log('--------------------------------------');
 
-            console.log(jsonData.result.day.content[1].keyword);
-            console.log();
-            console.log(jsonData.result.day.content[1].desc);
-            console.log('--------------------------------------');
+
+            slack.webhook({
+                  channel: "#2019_도제학생방", // 전송될 슬랙 채널
+                  username: "카렌", //슬랙에 표시될 이름
+                  text: '>>>' + jsonData.result.day.content[0].desc
+                }, function(err, response) {
+                  console.log(response);
+                });
+              
             return rq(options);
         })
 });
